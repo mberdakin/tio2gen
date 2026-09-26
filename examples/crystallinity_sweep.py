@@ -3,8 +3,8 @@
 Builds anatase and rutile supercells for several crystallinity values and
 plots (a) the total g(r) of anatase and (b) the RDF similarity to the ideal
 crystal together with (c) the mean Ti coordination number. Disordered
-structures go through the default Matsui-Akaogi quench, so this takes a few
-minutes.
+structures go through the default Matsui-Akaogi quench, run to convergence,
+so this takes about 20 minutes.
 
     python examples/crystallinity_sweep.py            # -> docs/crystallinity_sweep.png
 """
