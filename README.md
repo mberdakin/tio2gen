@@ -170,7 +170,7 @@ tio2gen/
   io.py          XYZ / CIF / GEN writers
   cli.py         command-line interface
 tests/           pytest suite
-examples/        crystallinity sweep figure
+examples/        crystallinity sweep figure; quick structure analysis script
 ```
 
 ## References
