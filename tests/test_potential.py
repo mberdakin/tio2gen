@@ -1,11 +1,21 @@
 import numpy as np
 import pytest
-from ase.calculators.test import numeric_force
 from ase.neighborlist import neighbor_list
 
 from tio2gen import build_structure, build_supercell, coordination_numbers
 from tio2gen.disorder import quench
 from tio2gen.potential import MatsuiAkaogi
+
+
+def numeric_force(atoms, index, axis, delta):
+    """Central finite-difference force component (-dE/dx)."""
+    position = atoms.positions[index, axis]
+    energies = []
+    for sign in (1, -1):
+        atoms.positions[index, axis] = position + sign * delta
+        energies.append(atoms.get_potential_energy())
+    atoms.positions[index, axis] = position
+    return (energies[1] - energies[0]) / (2 * delta)
 
 
 @pytest.mark.parametrize("supercell", [2, (1, 1, 2)])  # (1, 1, 2): self-images
