@@ -59,7 +59,21 @@ tio2gen -p anatase -s 4 -c 0.5 --domains 4 -f gen -o dftb_inputs
 ```
 
 Files are named after their parameters, e.g.
-`rutile_4x4x6_c0.60_seed42.gen`. Run `tio2gen --help` for all options.
+`rutile_4x4x6_c0.60_seed42.gen`.
+
+| Option | Description | Default |
+|---|---|---|
+| `-p`, `--phase` | `anatase` or `rutile` | `anatase` |
+| `-s`, `--supercell` | Repetitions of the unit cell: `N` or `NX NY NZ` | `1` |
+| `-c`, `--crystallinity` | χ in [0, 1]; several values give one structure each | `1.0` |
+| `--domains` | Number of amorphous nucleation seeds | `1` |
+| `--amorphous-sigma` | Displacement amplitude in amorphous regions (Å) | `0.8` |
+| `--thermal-sigma` | Displacement amplitude in crystalline regions (Å) | `0` |
+| `--relax-steps` | Max FIRE steps of the Matsui–Akaogi quench; `0` disables it | `300` |
+| `--seed` | Random seed for reproducibility | random |
+| `-f`, `--formats` | Any of `xyz`, `cif`, `gen` | all three |
+| `-o`, `--outdir` | Output directory | `./structures` |
+| `--version` | Print the version and exit | |
 
 ### Python
 
