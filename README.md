@@ -69,7 +69,7 @@ Files are named after their parameters, e.g.
 | `--domains` | Number of amorphous nucleation seeds | `1` |
 | `--amorphous-sigma` | Displacement amplitude in amorphous regions (Å) | `0.8` |
 | `--thermal-sigma` | Displacement amplitude in crystalline regions (Å) | `0` |
-| `--relax-steps` | Max FIRE steps of the Matsui–Akaogi quench; `0` disables it | `300` |
+| `--relax-steps` | Max FIRE steps of the Matsui–Akaogi quench (stops once converged); `0` disables it | `3000` |
 | `--seed` | Random seed for reproducibility | random |
 | `-f`, `--formats` | Any of `xyz`, `cif`, `gen` | all three |
 | `-o`, `--outdir` | Output directory | `./structures` |
@@ -107,15 +107,17 @@ in four steps (see [`tio2gen/disorder.py`](tio2gen/disorder.py)):
 3. **Overlap removal.** An iterative push-apart step enforces minimum
    Ti–O / O–O / Ti–Ti distances so no two atoms overlap. Crystalline atoms at
    the interface may be nudged too, mimicking grain-boundary strain.
-4. **Quench.** A short FIRE minimisation (`relax_steps`, 300 by default) with
-   the Matsui–Akaogi TiO2 potential. Without it, distances pile up at the
-   hard-core values and Ti is under-coordinated; with it, the disordered
-   network recovers realistic Ti–O bonds.
+4. **Quench.** A FIRE minimisation with the Matsui–Akaogi TiO2 potential,
+   run until the maximum force drops below 0.05 eV/Å (at most `relax_steps`,
+   3000 by default; a warning is issued if that limit is reached). Without it,
+   distances pile up at the hard-core values and Ti is under-coordinated; with
+   it, the disordered network recovers realistic Ti–O bonds.
 
 Atoms are only moved, never added or removed, and the cell is fixed, so
 composition and density are those of the parent phase. χ = 1 returns the
 exact crystal. The per-atom `amorphous` flag is kept in the XYZ file, so the
-two regions can be coloured separately in a viewer such as OVITO.
+two regions can be coloured separately in a viewer such as OVITO. The XYZ
+header also records the quench (`quench_steps`, `quench_fmax`).
 
 ### The interatomic potential
 

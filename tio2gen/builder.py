@@ -42,7 +42,7 @@ def build_structure(
     n_domains: int = 1,
     amorphous_sigma: float = 0.8,
     thermal_sigma: float = 0.0,
-    relax_steps: int = 300,
+    relax_steps: int = 3000,
     seed: Optional[int] = None,
 ) -> Atoms:
     """Build a TiO2 supercell with a tunable degree of crystallinity.

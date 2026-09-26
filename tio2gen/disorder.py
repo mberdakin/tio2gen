@@ -12,7 +12,7 @@ The model uses a single parameter, the crystallinity ``chi`` in [0, 1]:
 3. An iterative push-apart relaxation removes unphysical overlaps by
    enforcing species-dependent minimum distances. Crystalline atoms next
    to a disordered region may be nudged as well (interface strain).
-4. Optionally (``relax_steps > 0``), a short FIRE minimisation with the
+4. Optionally (``relax_steps > 0``), a FIRE minimisation with the
    Matsui-Akaogi potential "quenches" the structure: it removes the
    artificial pile-up of distances at the hard-core values and restores
    realistic Ti-O bonding (Ti coordination ~5.5-6, d(Ti-O) ~1.93 A).
@@ -23,6 +23,7 @@ or removed, and the cell is left untouched.
 
 from __future__ import annotations
 
+import warnings
 from typing import Dict, Optional, Tuple
 
 import numpy as np
@@ -123,7 +124,7 @@ def apply_disorder(
     amorphous_sigma: float = 0.8,
     thermal_sigma: float = 0.0,
     min_distances: Optional[Dict[Tuple[str, str], float]] = None,
-    relax_steps: int = 300,
+    relax_steps: int = 3000,
     seed: Optional[int] = None,
 ) -> Atoms:
     """Return a copy of ``atoms`` with the requested degree of crystallinity.
@@ -143,7 +144,8 @@ def apply_disorder(
         that remain crystalline.
     relax_steps:
         Maximum number of FIRE steps with the Matsui-Akaogi potential after
-        the geometric step. 0 skips it (much faster, but distances pile up at
+        the geometric step; the minimisation stops earlier once converged
+        and warns if it runs out of steps. 0 skips it (much faster, but distances pile up at
         the hard-core values and Ti ends up under-coordinated).
     seed:
         Random seed, for reproducible structures.
@@ -180,13 +182,26 @@ def apply_disorder(
     return out
 
 
-def quench(atoms: Atoms, steps: int = 300, fmax: float = 0.05) -> int:
+def quench(atoms: Atoms, steps: int = 3000, fmax: float = 0.05) -> int:
     """Minimise ``atoms`` in place with the Matsui-Akaogi potential.
 
-    The cell is kept fixed. Returns the number of FIRE steps taken.
+    The cell is kept fixed. The number of steps taken and the final maximum
+    force are stored in ``atoms.info`` (``quench_steps``, ``quench_fmax``),
+    and a ``RuntimeWarning`` is issued if ``fmax`` is not reached within
+    ``steps``. Returns the number of FIRE steps taken.
     """
     atoms.calc = MatsuiAkaogi()
     opt = FIRE(atoms, logfile=None, maxstep=0.1)
     opt.run(fmax=fmax, steps=steps)
+    final_fmax = float(np.linalg.norm(atoms.get_forces(), axis=1).max())
     atoms.calc = None
+    atoms.info["quench_steps"] = opt.nsteps
+    atoms.info["quench_fmax"] = round(final_fmax, 4)
+    if final_fmax > fmax:
+        warnings.warn(
+            f"Quench did not converge in {opt.nsteps} steps (max force "
+            f"{final_fmax:.3f} eV/A > {fmax} eV/A); increase relax_steps.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
     return opt.nsteps

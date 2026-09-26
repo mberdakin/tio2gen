@@ -47,6 +47,7 @@ def test_unknown_format_raises(tmp_path):
         write_structure(build_structure("rutile"), tmp_path, formats=["pdb"])
 
 
+@pytest.mark.filterwarnings("ignore:Quench did not converge")
 def test_cli_writes_one_structure_per_crystallinity(tmp_path, capsys):
     code = main([
         "--phase", "rutile", "--supercell", "2", "2", "3",

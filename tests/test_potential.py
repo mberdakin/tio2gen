@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pytest
 from ase.neighborlist import neighbor_list
@@ -40,6 +42,8 @@ def test_rutile_is_more_stable_than_anatase():
     assert energies["rutile"] < energies["anatase"]
 
 
+# These tests use deliberately short quenches, which are not expected to converge.
+@pytest.mark.filterwarnings("ignore:Quench did not converge")
 def test_quench_restores_ti_coordination():
     atoms = build_structure("rutile", 3, 0.0, seed=4, relax_steps=0)
     before = coordination_numbers(atoms).mean()
@@ -52,8 +56,25 @@ def test_quench_restores_ti_coordination():
     assert after > before + 0.5
 
 
+@pytest.mark.filterwarnings("ignore:Quench did not converge")
 def test_quenched_structure_has_no_hard_core_pile_up():
     atoms = build_structure("anatase", (3, 3, 2), 0.0, seed=2, relax_steps=200)
     d = neighbor_list("d", atoms, 2.3)
     # Without the quench ~all short contacts sit exactly at 1.70 A.
     assert np.mean(np.abs(d - 1.70) < 0.02) < 0.02
+
+
+def test_default_quench_converges_and_is_recorded():
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        atoms = build_structure("rutile", 2, 0.5, seed=0)
+    assert 0 < atoms.info["quench_steps"] < 3000
+    assert atoms.info["quench_fmax"] <= 0.05
+
+
+def test_unconverged_quench_warns():
+    atoms = build_structure("rutile", 2, 0.5, seed=0, relax_steps=0)
+    with pytest.warns(RuntimeWarning, match="Quench did not converge"):
+        steps = quench(atoms, steps=5)
+    assert steps == atoms.info["quench_steps"] == 5
+    assert atoms.info["quench_fmax"] > 0.05

@@ -54,9 +54,9 @@ def build_parser() -> argparse.ArgumentParser:
         "(default: 0)",
     )
     parser.add_argument(
-        "--relax-steps", type=int, default=300, metavar="N",
+        "--relax-steps", type=int, default=3000, metavar="N",
         help="max FIRE steps of the Matsui-Akaogi quench applied to disordered "
-        "structures; 0 disables it (default: 300)",
+        "structures; it stops once converged. 0 disables it (default: 3000)",
     )
     parser.add_argument(
         "--seed", type=int, default=None, help="random seed for reproducibility"
